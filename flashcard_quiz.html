@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>英単語フラッシュカードクイズ</title>
+  <style>
+    /* ===== CSS変数 テーマ ===== */
+    :root {
+      --bg:          linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --bg-solid:    #16213e;
+      --text:        #eeeeee;
+      --text-sub:    #aaaaaa;
+      --text-h1:     #e0e0ff;
+      --card-bg:     rgba(255,255,255,0.06);
+      --card-border: rgba(255,255,255,0.12);
+      --input-bg:    rgba(255,255,255,0.08);
+      --input-border:rgba(255,255,255,0.2);
+      --input-color: #ffffff;
+      --table-head:  rgba(74,144,217,0.3);
+      --table-th:    #aac8f0;
+      --table-row-hover: rgba(255,255,255,0.05);
+      --table-border:rgba(255,255,255,0.07);
+      --prog-bg:     rgba(255,255,255,0.1);
+      --add-card-bg: rgba(255,255,255,0.05);
+      --add-card-border: rgba(255,255,255,0.1);
+      --add-label:   #c0d8f0;
+      --ctrl-label:  #888888;
+      --hint-color:  #7c9fd4;
+      --result-bg:   rgba(255,255,255,0.06);
+      --feedback-item-bg: rgba(255,255,255,0.08);
+      --next-btn-bg: rgba(255,255,255,0.1);
+      --next-btn-border: rgba(255,255,255,0.25);
+      --next-btn-color: #dddddd;
+      --divider-bg:  rgba(255,255,255,0.15);
+      --delete-btn-bg: rgba(244,67,54,0.15);
+      --delete-btn-border: rgba(244,67,54,0.4);
+      --shadow:      0 8px 32px rgba(0,0,0,0.35);
+      --sheet-color: #cc0000;   /* 赤シートの色 */
+    }
+
+    body.light {
+      --bg:          linear-gradient(135deg, #f0f4ff 0%, #e8eef8 50%, #dde6f5 100%);
+      --bg-solid:    #eef2fb;
+      --text:        #222222;
+      --text-sub:    #666666;
+      --text-h1:     #2a3a6e;
+      --card-bg:     rgba(255,255,255,0.85);
+      --card-border: rgba(100,130,200,0.25);
+      --input-bg:    rgba(255,255,255,0.9);
+      --input-border:rgba(100,130,200,0.4);
+      --input-color: #222222;
+      --table-head:  rgba(74,144,217,0.15);
+      --table-th:    #3a5a9a;
+      --table-row-hover: rgba(74,144,217,0.07);
+      --table-border:rgba(100,130,200,0.18);
+      --prog-bg:     rgba(0,0,0,0.1);
+      --add-card-bg: rgba(255,255,255,0.7);
+      --add-card-border: rgba(100,130,200,0.25);
+      --add-label:   #3a5a9a;
+      --ctrl-label:  #666666;
+      --hint-color:  #4a72b0;
+      --result-bg:   rgba(255,255,255,0.8);
+      --feedback-item-bg: rgba(0,0,0,0.05);
+      --next-btn-bg: rgba(0,0,0,0.06);
+      --next-btn-border: rgba(0,0,0,0.18);
+      --next-btn-color: #333333;
+      --divider-bg:  rgba(0,0,0,0.15);
+      --delete-btn-bg: rgba(244,67,54,0.08);
+      --delete-btn-border: rgba(244,67,54,0.3);
+      --shadow:      0 4px 20px rgba(0,0,0,0.12);
+      --sheet-color: #cc0000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== ヘッダー ===== */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--text-h1);
+      letter-spacing: 0.05em;
+    }
+
+    /* テーマ切替ボタン */
+    #theme-toggle {
+      position: absolute;
+      right: 0;
+      background: none;
+      border: 1.5px solid var(--input-border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    #theme-toggle:hover { opacity: 0.75; }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+    }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      padding: 8px 24px;
+      border: 2px solid #4a90d9;
+      border-radius: 20px;
+      background: transparent;
+      color: #4a90d9;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active { background: #4a90d9; color: #fff; }
+    .tab-btn:hover:not(.active) { background: rgba(74,144,217,0.15); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== クイズ ===== */
+    #quiz-area { max-width: 640px; margin: 0 auto; }
+
+    .progress-bar-wrap {
+      background: var(--prog-bg);
+      border-radius: 10px;
+      height: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4a90d9, #7c4dff);
+      border-radius: 10px;
+      transition: width 0.4s;
+    }
+
+    .progress-text {
+      text-align: right;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+    }
+
+    /* コントロール行 */
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .ctrl-group-label {
+      font-size: 0.72rem;
+      color: var(--ctrl-label);
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .dir-btn {
+      padding: 5px 16px;
+      border: 1.5px solid #e06020;
+      border-radius: 15px;
+      background: transparent;
+      color: #e06020;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .dir-btn.active { background: #e06020; color: #fff; }
+    .dir-btn:hover:not(.active) { background: rgba(224,96,32,0.12); }
+
+    .mode-btn {
+      padding: 5px 13px;
+      border: 1.5px solid #7c4dff;
+      border-radius: 15px;
+      background: transparent;
+      color: #7c4dff;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .mode-btn.active { background: #7c4dff; color: #fff; }
+    .mode-btn:hover:not(.active) { background: rgba(124,77,255,0.12); }
+
+    /* カード */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 30px 28px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      min-height: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .question-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .question-text {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+
+    .hint-text {
+      font-size: 0.82rem;
+      color: var(--hint-color);
+      margin-top: 8px;
+    }
+
+    /* 入力欄 共通 */
+    .answer-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .triple-input-area {
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .triple-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .triple-cell label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .triple-cell input {
+      width: 100%;
+      padding: 11px 10px;
+      border: 2px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--input-color);
+      font-size: 0.95rem;
+      outline: none;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .triple-cell input:focus   { border-color: #4a90d9; }
+    .triple-cell input.correct { border-color: #4caf50; background: rgba(76,175,80,0.15); }
+    .triple-cell input.wrong   { border-color: #f44336; background: rgba(244,67,54,0.15); }
+
+    #answer-input, #answer-input-ja {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--input-color);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #answer-input:focus,   #answer-input-ja:focus   { border-color: #4a90d9; }
+    #answer-input.correct, #answer-input-ja.correct { border-color: #4caf50; background: rgba(76,175,80,0.15); }
+    #answer-input.wrong,   #answer-input-ja.wrong   { border-color: #f44336; background: rgba(244,67,54,0.15); }
+
+    .btn {
+      padding: 12px 22px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    #submit-btn, #submit-btn-triple, #submit-btn-ja {
+      background: linear-gradient(135deg, #4a90d9, #7c4dff);
+      color: #fff;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    #submit-btn:hover, #submit-btn-triple:hover, #submit-btn-ja:hover {
+      opacity: 0.85; transform: translateY(-1px);
+    }
+
+    /* フィードバック */
+    #feedback {
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    #feedback.correct { background: rgba(76,175,80,0.2);  border: 1px solid #4caf50; color: #2e7d32; }
+    #feedback.wrong   { background: rgba(244,67,54,0.2);  border: 1px solid #f44336; color: #c62828; }
+    #feedback.partial { background: rgba(255,152,0,0.18); border: 1px solid #ff9800; color: #e65100; }
+
+    body.light #feedback.correct { color: #1b5e20; }
+    body.light #feedback.wrong   { color: #b71c1c; }
+    body.light #feedback.partial { color: #bf360c; }
+
+    .feedback-forms {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .form-item {
+      background: var(--feedback-item-bg);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.82rem;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .form-item.ok { border: 1px solid rgba(76,175,80,0.5); }
+    .form-item.ng { border: 1px solid rgba(244,67,54,0.5); }
+
+    .form-label {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    #next-btn {
+      background: var(--next-btn-bg);
+      border: 1.5px solid var(--next-btn-border);
+      color: var(--next-btn-color);
+      width: 100%;
+      display: none;
+    }
+
+    #next-btn:hover { opacity: 0.75; }
+
+    /* スコア */
+    #score-display {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .score-box { text-align: center; }
+
+    .score-num { font-size: 1.6rem; font-weight: 700; }
+    .score-num.correct { color: #4caf50; }
+    .score-num.wrong   { color: #f44336; }
+
+    .score-lbl { font-size: 0.75rem; color: var(--text-sub); }
+
+    /* 結果 */
+    #result-area {
+      display: none;
+      text-align: center;
+      background: var(--result-bg);
+      border-radius: 18px;
+      padding: 40px 28px;
+    }
+
+    .result-emoji { font-size: 3.5rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .result-score { font-size: 3rem; font-weight: 900; color: #4a90d9; }
+    .result-sub   { font-size: 0.9rem; color: var(--text-sub); margin: 8px 0 24px; }
+
+    #restart-btn {
+      background: linear-gradient(135deg, #4a90d9, #7c4dff);
+      color: #fff;
+      padding: 12px 36px;
+      font-size: 1rem;
+    }
+
+    #restart-btn:hover { opacity: 0.85; }
+
+    /* ===== 単語一覧 ===== */
+    #list-area { max-width: 760px; margin: 0 auto; }
+
+    /* 一覧コントロール行 */
+    .list-ctrl {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .list-ctrl-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .list-search {
+      padding: 8px 14px;
+      border: 1.5px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--input-color);
+      font-size: 0.9rem;
+      width: 180px;
+      outline: none;
+    }
+
+    .list-search:focus { border-color: #4a90d9; }
+
+    /* 赤シートボタン */
+    #sheet-btn {
+      padding: 7px 16px;
+      border: 1.5px solid #cc3333;
+      border-radius: 15px;
+      background: transparent;
+      color: #cc3333;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    #sheet-btn.active {
+      background: #cc3333;
+      color: #fff;
+    }
+
+    #sheet-btn:hover:not(.active) { background: rgba(204,51,51,0.1); }
+
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    thead th {
+      background: var(--table-head);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      color: var(--table-th);
+      border-bottom: 1px solid var(--table-border);
+    }
+
+    tbody tr:hover { background: var(--table-row-hover); }
+
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--table-border);
+      vertical-align: middle;
+    }
+
+    /* 英語セル */
+    .en-cell {
+      display: inline-block;
+      color: #ff9999;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background 0.15s, color 0.15s;
+      border-radius: 4px;
+      /* min-width は JS から列ごとに付与 */
+    }
+
+    /* 赤シートON時: 英語を赤シート色で塗りつぶす（文字色も同色） */
+    body.sheet-on .en-cell {
+      color: var(--sheet-color) !important;
+      background: var(--sheet-color);
+      cursor: pointer;
+      user-select: none;
+      /* min-width はそのまま維持されるので幅は変わらない */
+    }
+
+    /* 赤シートON時に個別セルをクリックで一時表示 */
+    body.sheet-on .en-cell.revealed {
+      color: #ff9999 !important;
+      background: transparent;
+    }
+
+    /* ===================================================
+       全画面暗記モード — 物理赤シート用
+       英語を #ff9999 で常時表示。赤シートをかざすと消える。
+    =================================================== */
+    #cover-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      /* 黒背景 → #ff9999 が赤シートで消え、白文字（日本語）だけ残る */
+      background: #111111;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #cover-overlay.active { display: block; }
+
+    /* 上部固定バー */
+    .cover-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cover-topbar-title {
+      font-size: 0.88rem;
+      color: #ccc;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .cover-topbar-btns {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* サイズ調整ボタン */
+    .cover-size-btn {
+      padding: 5px 13px;
+      border: 1.5px solid #555;
+      border-radius: 13px;
+      background: transparent;
+      color: #ccc;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cover-size-btn:hover  { background: rgba(255,255,255,0.08); }
+    .cover-size-btn.active { background: rgba(255,255,255,0.18); border-color:#aaa; color:#fff; }
+
+    #cover-close-btn {
+      padding: 5px 16px;
+      border: none;
+      border-radius: 13px;
+      background: #444;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #cover-close-btn:hover { background: #555; }
+
+    /* カードリスト */
+    .cover-list {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* 1行 = 1単語。横一列: 日本語 | 現在形 | 過去形 | 過去分詞 */
+    .cover-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid #2a2a2a;
+      align-items: center;
+      padding: 10px 4px;
+    }
+    .cover-row:first-child { border-top: 1px solid #2a2a2a; }
+
+    /* 3形まとめて1列表示モード（スマホ縦向けオプション）*/
+    .cover-list.col1 .cover-row {
+      grid-template-columns: 1fr 2fr;
+    }
+    .cover-list.col1 .cover-en-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-start;
+    }
+    .cover-list.col1 .cover-en-group .cover-form-label { display: inline; margin-right: 4px; }
+
+    /* 日本語 */
+    .cover-ja {
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.35;
+      padding-right: 8px;
+      /* フォントサイズは JS の data-size で制御 */
+    }
+
+    /* 英語: 常に #ff9999。赤シートをかざすと消える */
+    .cover-en {
+      color: #ff9999;
+      font-weight: 700;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .cover-form-label {
+      display: block;
+      font-size: 0.6em;
+      color: #ff7777;
+      opacity: 0.7;
+      margin-bottom: 1px;
+      letter-spacing: 0.06em;
+    }
+
+    /* サイズ段階: data-size="S/M/L/XL" */
+    #cover-overlay[data-size="S"]  .cover-ja,
+    #cover-overlay[data-size="S"]  .cover-en { font-size: 1.1rem; }
+    #cover-overlay[data-size="M"]  .cover-ja,
+    #cover-overlay[data-size="M"]  .cover-en { font-size: 1.45rem; }
+    #cover-overlay[data-size="L"]  .cover-ja,
+    #cover-overlay[data-size="L"]  .cover-en { font-size: 1.85rem; }
+    #cover-overlay[data-size="XL"] .cover-ja,
+    #cover-overlay[data-size="XL"] .cover-en { font-size: 2.4rem; }
+
+    /* XL時はヘッダラベルも少し大きく */
+    #cover-overlay[data-size="XL"] .cover-form-label { font-size: 0.5em; }
+
+    /* スマホ */
+    @media (max-width: 480px) {
+      .cover-row { grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 0; padding: 8px 2px; }
+      #cover-overlay[data-size="S"]  .cover-ja,
+      #cover-overlay[data-size="S"]  .cover-en { font-size: 1rem; }
+      #cover-overlay[data-size="M"]  .cover-ja,
+      #cover-overlay[data-size="M"]  .cover-en { font-size: 1.25rem; }
+      #cover-overlay[data-size="L"]  .cover-ja,
+      #cover-overlay[data-size="L"]  .cover-en { font-size: 1.6rem; }
+      #cover-overlay[data-size="XL"] .cover-ja,
+      #cover-overlay[data-size="XL"] .cover-en { font-size: 2rem; }
+    }
+
+    .delete-btn {
+      background: var(--delete-btn-bg);
+      border: 1px solid var(--delete-btn-border);
+      color: #ef9a9a;
+      border-radius: 6px;
+      padding: 3px 10px;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
+    .delete-btn:hover { background: rgba(244,67,54,0.3); }
+
+    /* 追加フォーム */
+    .add-form-card {
+      background: var(--add-card-bg);
+      border: 1px solid var(--add-card-border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+    }
+
+    .add-form-card h3 {
+      font-size: 1rem;
+      color: var(--add-label);
+      margin-bottom: 14px;
+    }
+
+    .add-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .add-grid label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .add-grid input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1.5px solid var(--input-border);
+      border-radius: 9px;
+      background: var(--input-bg);
+      color: var(--input-color);
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .add-grid input:focus { border-color: #4a90d9; }
+
+    #add-btn {
+      background: linear-gradient(135deg, #4caf50, #1b8a2e);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 9px;
+      white-space: nowrap;
+    }
+
+    #add-btn:hover { opacity: 0.85; }
+
+    .divider {
+      width: 1px;
+      background: var(--divider-bg);
+      height: 30px;
+      align-self: center;
+    }
+
+    /* ===== タッチ操作向け ===== */
+    @media (hover: none) {
+      .btn, .tab-btn, .dir-btn, .mode-btn, #theme-toggle, #sheet-btn, .delete-btn {
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* タッチターゲットを大きく */
+      .dir-btn, .mode-btn { padding: 8px 18px; font-size: 0.85rem; }
+      .triple-cell input  { padding: 13px 10px; font-size: 1rem; }
+      #answer-input, #answer-input-ja { padding: 14px 16px; font-size: 1rem; }
+      .btn { padding: 14px 22px; }
+      tbody td { padding: 12px 10px; }
+    }
+
+    /* ===== スマートフォン (〜480px) ===== */
+    @media (max-width: 480px) {
+      body { padding: 12px 10px; }
+      h1   { font-size: 1.35rem; }
+      .top-bar { flex-direction: column; gap: 8px; align-items: center; }
+      #theme-toggle { position: static; }
+
+      .tabs { gap: 6px; }
+      .tab-btn { padding: 7px 16px; font-size: 0.82rem; }
+
+      /* コントロール行を縦積み */
+      .ctrl-row { flex-direction: column; align-items: stretch; gap: 8px; }
+      .divider  { display: none; }
+      .ctrl-group { align-items: flex-start; }
+      .ctrl-group-label { margin-bottom: 4px; }
+      .btn-row  { gap: 5px; }
+      .dir-btn, .mode-btn { padding: 6px 12px; font-size: 0.78rem; }
+
+      .question-text { font-size: 1.6rem; }
+      .card { padding: 22px 16px 18px; min-height: 110px; }
+
+      /* 3入力グリッドは縦 */
+      .triple-grid { grid-template-columns: 1fr; gap: 8px; }
+      .triple-cell input { padding: 12px; font-size: 1rem; text-align: left; }
+
+      .feedback-forms { grid-template-columns: 1fr 1fr; }
+
+      /* 一覧 */
+      .list-ctrl { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .list-ctrl > div:last-child { width: 100%; flex-direction: column; }
+      .list-search { width: 100%; }
+      .list-ctrl-left { width: 100%; justify-content: space-between; }
+      #sort-select { width: 100%; }
+
+      .add-grid { grid-template-columns: 1fr 1fr; }
+      .add-grid > *:last-child { grid-column: 1/-1; }
+
+      /* テーブル横スクロール許容 */
+      #list-area { overflow-x: auto; }
+      table { font-size: 0.82rem; min-width: 420px; }
+      tbody td { padding: 9px 6px; }
+      thead th  { padding: 8px 6px; font-size: 0.72rem; }
+      .en-cell  { font-size: 0.92rem; }
+
+      /* スコア */
+      #score-display { gap: 16px; }
+      .score-num { font-size: 1.3rem; }
+    }
+
+    /* ===== iPad (481px〜1024px) ===== */
+    @media (min-width: 481px) and (max-width: 1024px) {
+      body { padding: 20px 24px; }
+
+      /* コントロール行を折り返し */
+      .ctrl-row { gap: 12px; }
+      .dir-btn, .mode-btn { padding: 7px 15px; }
+
+      #quiz-area  { max-width: 580px; }
+      #list-area  { max-width: 100%; }
+
+      .add-grid   { grid-template-columns: repeat(2, 1fr); }
+      .add-grid > *:nth-child(5) { grid-column: 1/-1; }
+
+      .question-text { font-size: 1.8rem; }
+      table  { font-size: 0.92rem; }
+      .en-cell { font-size: 1rem; }
+    }
+
+    /* ===== Safe area (iPhone X以降のノッチ対応) ===== */
+    @supports (padding: max(0px)) {
+      body {
+        padding-left:  max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="top-bar">
+  <h1>🗂️ 英単語フラッシュカード</h1>
+  <button id="theme-toggle" onclick="toggleTheme()">☀️ ライトテーマ</button>
+</div>
+<p class="subtitle">動詞の活用形をマスターしよう！</p>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('quiz', this)">📝 クイズ</button>
+  <button class="tab-btn" onclick="switchTab('list', this)">📋 単語一覧・追加</button>
+</div>
+
+<!-- ===== クイズタブ ===== -->
+<div id="tab-quiz" class="tab-content active">
+  <div id="quiz-area">
+
+    <div id="score-display">
+      <div class="score-box">
+        <div class="score-num correct" id="score-correct">0</div>
+        <div class="score-lbl">正解</div>
+      </div>
+      <div class="score-box">
+        <div class="score-num wrong" id="score-wrong">0</div>
+        <div class="score-lbl">不正解</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-text"><span id="prog-cur">0</span> / <span id="prog-total">0</span></div>
+
+    <div class="ctrl-row">
+      <div class="ctrl-group">
+        <div class="ctrl-group-label">出題方向</div>
+        <div class="btn-row">
+          <button class="dir-btn active" onclick="setDir('ja2en')" id="dir-ja2en">🇯🇵 → 🇬🇧 日→英</button>
+          <button class="dir-btn" onclick="setDir('en2ja')" id="dir-en2ja">🇬🇧 → 🇯🇵 英→日</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="ctrl-group" id="mode-group">
+        <div class="ctrl-group-label">英語モード（日→英）</div>
+        <div class="btn-row">
+          <button class="mode-btn active" onclick="setMode('triple')" id="mode-triple">3形同時入力</button>
+          <button class="mode-btn" onclick="setMode('present')" id="mode-present">現在形のみ</button>
+          <button class="mode-btn" onclick="setMode('past')" id="mode-past">過去形のみ</button>
+          <button class="mode-btn" onclick="setMode('pp')" id="mode-pp">過去分詞のみ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="quiz-card">
+      <div class="question-label" id="question-label">日本語 → 英語</div>
+      <div class="question-text" id="question-text">—</div>
+      <div class="hint-text" id="hint-text"></div>
+    </div>
+
+    <!-- 3形同時入力 -->
+    <div class="triple-input-area" id="triple-input-area">
+      <div class="triple-grid">
+        <div class="triple-cell">
+          <label>現在形</label>
+          <input type="text" id="t-present" placeholder="present" autocomplete="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="triple-cell">
+          <label>過去形</label>
+          <input type="text" id="t-past" placeholder="past" autocomplete="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="triple-cell">
+          <label>過去分詞</label>
+          <input type="text" id="t-pp" placeholder="past participle" autocomplete="off" autocorrect="off" spellcheck="false" />
+        </div>
+      </div>
+      <button class="btn" id="submit-btn-triple" onclick="checkTriple()">確認</button>
+    </div>
+
+    <!-- 日→英 単一入力 -->
+    <div class="answer-row" id="single-input-area" style="display:none;">
+      <input type="text" id="answer-input" placeholder="英語を入力…" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn" id="submit-btn" onclick="checkSingle()">確認</button>
+    </div>
+
+    <!-- 英→日 入力 -->
+    <div class="answer-row" id="ja-input-area" style="display:none;">
+      <input type="text" id="answer-input-ja" placeholder="日本語を入力…" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn" id="submit-btn-ja" onclick="checkJa()">確認</button>
+    </div>
+
+    <div id="feedback"></div>
+    <button class="btn" id="next-btn" onclick="nextQuestion()">次の問題 →</button>
+
+    <div id="result-area">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <div class="result-title">クイズ終了！</div>
+      <div class="result-score"><span id="result-score">0</span> / <span id="result-total">0</span></div>
+      <div class="result-sub" id="result-sub"></div>
+      <button class="btn" id="restart-btn" onclick="startQuiz()">もう一度挑戦</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 単語一覧タブ ===== -->
+<div id="tab-list" class="tab-content">
+  <div id="list-area">
+
+    <div class="add-form-card">
+      <h3>➕ 単語を追加</h3>
+      <div class="add-grid">
+        <div>
+          <label>日本語</label>
+          <input type="text" id="in-ja" placeholder="例：走る" />
+        </div>
+        <div>
+          <label>現在形</label>
+          <input type="text" id="in-present" placeholder="例：run" />
+        </div>
+        <div>
+          <label>過去形</label>
+          <input type="text" id="in-past" placeholder="例：ran" />
+        </div>
+        <div>
+          <label>過去分詞</label>
+          <input type="text" id="in-pp" placeholder="例：run" />
+        </div>
+        <div>
+          <button class="btn" id="add-btn" onclick="addWord()">追加</button>
+        </div>
+      </div>
+      <div id="add-msg" style="font-size:0.82rem;margin-top:8px;"></div>
+    </div>
+
+    <div class="list-ctrl">
+      <div class="list-ctrl-left">
+        <span style="font-size:0.9rem;color:var(--text-sub);"><span id="word-count">0</span> 単語</span>
+        <button id="sheet-btn" onclick="toggleSheet()">🔴 赤シートモード</button>
+        <button id="cover-open-btn" onclick="openCover()"
+          style="padding:7px 14px;border:1.5px solid #8833bb;border-radius:15px;background:transparent;color:#8833bb;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.2s;white-space:nowrap;"
+          onmouseover="this.style.background='rgba(136,51,187,0.12)'" onmouseout="this.style.background='transparent'">
+          📱 全画面暗記
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="sort-select" onchange="renderList()"
+          style="padding:7px 10px;border:1.5px solid var(--input-border);border-radius:10px;background:var(--input-bg);color:var(--input-color);font-size:0.85rem;outline:none;cursor:pointer;">
+          <option value="default">並び順: 登録順</option>
+          <option value="az">現在形 A→Z</option>
+          <option value="za">現在形 Z→A</option>
+          <option value="len-asc">文字数 短い順</option>
+          <option value="len-desc">文字数 長い順</option>
+          <option value="ja">日本語 あ→ん</option>
+        </select>
+        <input class="list-search" type="text" id="list-search" placeholder="検索…" oninput="renderList()" />
+      </div>
+    </div>
+
+    <!-- 赤シート説明 -->
+    <div id="sheet-hint" style="display:none; font-size:0.8rem; color:#cc6666; margin-bottom:10px; padding:8px 12px; background:rgba(204,51,51,0.08); border-radius:8px; border:1px solid rgba(204,51,51,0.25);">
+      🔴 赤シートモード ON — 英語部分が隠れています。クリックすると一時表示できます。
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>日本語</th>
+          <th>現在形</th>
+          <th>過去形</th>
+          <th>過去分詞</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="word-table-body"></tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- ===== 全画面暗記オーバーレイ（物理赤シート用） ===== -->
+<div id="cover-overlay" data-size="M">
+  <div class="cover-topbar">
+    <span class="cover-topbar-title">📱 全画面暗記（赤シート用）</span>
+    <div class="cover-topbar-btns">
+      <span style="font-size:0.75rem;color:#888;margin-right:2px;">文字サイズ:</span>
+      <button class="cover-size-btn" onclick="setCoverSize('S')">S</button>
+      <button class="cover-size-btn active" onclick="setCoverSize('M')">M</button>
+      <button class="cover-size-btn" onclick="setCoverSize('L')">L</button>
+      <button class="cover-size-btn" onclick="setCoverSize('XL')">XL</button>
+      <button id="cover-close-btn" onclick="closeCover()">✕ 閉じる</button>
+    </div>
+  </div>
+  <div class="cover-list" id="cover-list"></div>
+</div>
+
+<script>
+// ===== 単語データ =====
+const INITIAL_WORDS = [
+  { ja:"〜である/〜になる", present:"be", past:"was/were", pp:"been" },
+  { ja:"壊す", present:"break", past:"broke", pp:"broken" },
+  { ja:"持ってくる", present:"bring", past:"brought", pp:"brought" },
+  { ja:"買う", present:"buy", past:"bought", pp:"bought" },
+  { ja:"捕まえる", present:"catch", past:"caught", pp:"caught" },
+  { ja:"選ぶ", present:"choose", past:"chose", pp:"chosen" },
+  { ja:"来る", present:"come", past:"came", pp:"come" },
+  { ja:"切る", present:"cut", past:"cut", pp:"cut" },
+  { ja:"飛び込む", present:"dive", past:"dove/dived", pp:"dived" },
+  { ja:"する", present:"do", past:"did", pp:"done" },
+  { ja:"描く", present:"draw", past:"drew", pp:"drawn" },
+  { ja:"飲む", present:"drink", past:"drank", pp:"drunk" },
+  { ja:"食べる", present:"eat", past:"ate", pp:"eaten" },
+  { ja:"落ちる", present:"fall", past:"fell", pp:"fallen" },
+  { ja:"感じる", present:"feel", past:"felt", pp:"felt" },
+  { ja:"戦う", present:"fight", past:"fought", pp:"fought" },
+  { ja:"見つける", present:"find", past:"found", pp:"found" },
+  { ja:"飛ぶ", present:"fly", past:"flew", pp:"flown" },
+  { ja:"忘れる", present:"forget", past:"forgot", pp:"forgotten" },
+  { ja:"凍る", present:"freeze", past:"froze", pp:"frozen" },
+  { ja:"手に入れる", present:"get", past:"got", pp:"gotten/got" },
+  { ja:"与える", present:"give", past:"gave", pp:"given" },
+  { ja:"行く", present:"go", past:"went", pp:"gone" },
+  { ja:"育てる", present:"grow", past:"grew", pp:"grown" },
+  { ja:"つるす", present:"hang", past:"hung", pp:"hung" },
+  { ja:"持っている", present:"have", past:"had", pp:"had" },
+  { ja:"聞こえる", present:"hear", past:"heard", pp:"heard" },
+  { ja:"打つ", present:"hit", past:"hit", pp:"hit" },
+  { ja:"持つ", present:"hold", past:"held", pp:"held" },
+  { ja:"保つ", present:"keep", past:"kept", pp:"kept" },
+  { ja:"知っている", present:"know", past:"knew", pp:"known" },
+  { ja:"去る", present:"leave", past:"left", pp:"left" },
+  { ja:"貸す", present:"lend", past:"lent", pp:"lent" },
+  { ja:"作る", present:"make", past:"made", pp:"made" },
+  { ja:"意味する", present:"mean", past:"meant", pp:"meant" },
+  { ja:"会う", present:"meet", past:"met", pp:"met" },
+  { ja:"払う", present:"pay", past:"paid", pp:"paid" },
+  { ja:"置く", present:"put", past:"put", pp:"put" },
+  { ja:"読む", present:"read", past:"read", pp:"read" },
+  { ja:"乗る", present:"ride", past:"rode", pp:"ridden" },
+  { ja:"昇る", present:"rise", past:"rose", pp:"risen" },
+  { ja:"走る", present:"run", past:"ran", pp:"run" },
+  { ja:"言う", present:"say", past:"said", pp:"said" },
+  { ja:"見える", present:"see", past:"saw", pp:"seen" },
+  { ja:"売る", present:"sell", past:"sold", pp:"sold" },
+  { ja:"送る", present:"send", past:"sent", pp:"sent" },
+  { ja:"置く(set)", present:"set", past:"set", pp:"set" },
+  { ja:"撃つ", present:"shoot", past:"shot", pp:"shot" },
+  { ja:"見せる", present:"show", past:"showed", pp:"shown" },
+  { ja:"歌う", present:"sing", past:"sang", pp:"sung" },
+  { ja:"沈む", present:"sink", past:"sank", pp:"sunk" },
+  { ja:"座る", present:"sit", past:"sat", pp:"sat" },
+  { ja:"眠る", present:"sleep", past:"slept", pp:"slept" },
+  { ja:"話す", present:"speak", past:"spoke", pp:"spoken" },
+  { ja:"立つ", present:"stand", past:"stood", pp:"stood" },
+  { ja:"盗む", present:"steal", past:"stole", pp:"stolen" },
+  { ja:"くっつく", present:"stick", past:"stuck", pp:"stuck" },
+  { ja:"泳ぐ", present:"swim", past:"swam", pp:"swum" },
+  { ja:"取る", present:"take", past:"took", pp:"taken" },
+  { ja:"教える", present:"teach", past:"taught", pp:"taught" },
+  { ja:"伝える", present:"tell", past:"told", pp:"told" },
+  { ja:"思う", present:"think", past:"thought", pp:"thought" },
+  { ja:"理解する", present:"understand", past:"understood", pp:"understood" },
+  { ja:"身に着ける", present:"wear", past:"wore", pp:"worn" },
+  { ja:"勝つ", present:"win", past:"won", pp:"won" },
+  { ja:"書く", present:"write", past:"wrote", pp:"written" },
+];
+
+let words = JSON.parse(localStorage.getItem('fc_words') || 'null') || INITIAL_WORDS;
+function saveWords() { localStorage.setItem('fc_words', JSON.stringify(words)); }
+
+// ===== テーマ =====
+let isLight = localStorage.getItem('fc_theme') === 'light';
+function applyTheme() {
+  if (isLight) {
+    document.body.classList.add('light');
+    document.getElementById('theme-toggle').textContent = '🌙 ダークテーマ';
+  } else {
+    document.body.classList.remove('light');
+    document.getElementById('theme-toggle').textContent = '☀️ ライトテーマ';
+  }
+}
+function toggleTheme() {
+  isLight = !isLight;
+  localStorage.setItem('fc_theme', isLight ? 'light' : 'dark');
+  applyTheme();
+}
+
+// ===== 赤シートモード =====
+let sheetOn = false;
+function toggleSheet() {
+  sheetOn = !sheetOn;
+  document.body.classList.toggle('sheet-on', sheetOn);
+  document.getElementById('sheet-btn').classList.toggle('active', sheetOn);
+  document.getElementById('sheet-hint').style.display = sheetOn ? 'block' : 'none';
+  // revealed状態をリセット
+  document.querySelectorAll('.en-cell').forEach(el => el.classList.remove('revealed'));
+}
+
+// 赤シートON中にセルをクリック → 一時表示トグル
+function toggleReveal(el) {
+  if (!sheetOn) return;
+  el.classList.toggle('revealed');
+}
+
+// ===== タブ =====
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'list') renderList();
+}
+
+// ===== クイズ状態 =====
+let quizQueue    = [];
+let currentIdx   = 0;
+let quizMode     = 'triple';
+let quizDir      = 'ja2en';
+let correctCount = 0;
+let wrongCount   = 0;
+let currentCard  = null;
+let answered     = false;
+
+function setDir(d) {
+  quizDir = d;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('dir-' + d).classList.add('active');
+  const mg = document.getElementById('mode-group');
+  mg.style.opacity = (d === 'en2ja') ? '0.4' : '1';
+  mg.style.pointerEvents = (d === 'en2ja') ? 'none' : '';
+  startQuiz();
+}
+
+function setMode(m) {
+  quizMode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode-' + m).classList.add('active');
+  startQuiz();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQueue() {
+  if (quizDir === 'en2ja') return shuffle(words.map(w => ({ ...w, targetKey: 'ja' })));
+  if (quizMode === 'triple') return shuffle(words.map(w => ({ ...w, targetKey: 'triple' })));
+  return shuffle(words.map(w => ({ ...w, targetKey: quizMode })));
+}
+
+function startQuiz() {
+  quizQueue    = buildQueue();
+  currentIdx   = 0;
+  correctCount = 0;
+  wrongCount   = 0;
+  updateScore();
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('quiz-card').style.display   = 'flex';
+  document.getElementById('feedback').style.display    = 'none';
+  document.getElementById('next-btn').style.display    = 'none';
+  document.getElementById('progress-bar').style.width  = '0%';
+  document.getElementById('prog-total').textContent    = quizQueue.length;
+  showQuestion();
+}
+
+function showInputArea() {
+  document.getElementById('triple-input-area').style.display = 'none';
+  document.getElementById('single-input-area').style.display = 'none';
+  document.getElementById('ja-input-area').style.display     = 'none';
+
+  if (quizDir === 'en2ja') {
+    document.getElementById('ja-input-area').style.display = 'flex';
+    setTimeout(() => document.getElementById('answer-input-ja').focus(), 50);
+  } else if (quizMode === 'triple') {
+    document.getElementById('triple-input-area').style.display = 'block';
+    setTimeout(() => document.getElementById('t-present').focus(), 50);
+  } else {
+    document.getElementById('single-input-area').style.display = 'flex';
+    setTimeout(() => document.getElementById('answer-input').focus(), 50);
+  }
+}
+
+function showQuestion() {
+  if (currentIdx >= quizQueue.length) { showResult(); return; }
+  currentCard = quizQueue[currentIdx];
+  answered    = false;
+
+  const ql = document.getElementById('question-label');
+  const qt = document.getElementById('question-text');
+  const ht = document.getElementById('hint-text');
+
+  if (quizDir === 'en2ja') {
+    ql.textContent = '英語 → 日本語';
+    qt.innerHTML   = `<span style="color:#5ba8f5">${currentCard.present}</span>`;
+    ht.textContent = `過去形: ${currentCard.past} ／ 過去分詞: ${currentCard.pp}`;
+  } else {
+    ql.textContent = '日本語 → 英語';
+    qt.textContent = currentCard.ja;
+    const lbl = { triple:'現在形・過去形・過去分詞を入力', present:'現在形を入力', past:'過去形を入力', pp:'過去分詞を入力' };
+    ht.textContent = '→ ' + lbl[quizMode];
+  }
+
+  document.getElementById('answer-input').value    = '';
+  document.getElementById('answer-input').className = '';
+  document.getElementById('answer-input').disabled  = false;
+  document.getElementById('answer-input-ja').value    = '';
+  document.getElementById('answer-input-ja').className = '';
+  document.getElementById('answer-input-ja').disabled  = false;
+  ['t-present','t-past','t-pp'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = ''; el.className = ''; el.disabled = false;
+  });
+
+  document.getElementById('submit-btn').style.display        = 'inline-block';
+  document.getElementById('submit-btn-triple').style.display = 'inline-block';
+  document.getElementById('submit-btn-ja').style.display     = 'inline-block';
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('prog-cur').textContent   = currentIdx + 1;
+  document.getElementById('progress-bar').style.width = ((currentIdx / quizQueue.length) * 100) + '%';
+
+  showInputArea();
+}
+
+function norm(s) { return s.trim().toLowerCase().replace(/\s+/g, ' '); }
+function matchAnswer(u, c) { return c.split('/').map(x => norm(x)).includes(norm(u)); }
+
+function checkTriple() {
+  if (answered) { nextQuestion(); return; }
+  const vP  = document.getElementById('t-present').value;
+  const vPa = document.getElementById('t-past').value;
+  const vPP = document.getElementById('t-pp').value;
+  if (!vP.trim() && !vPa.trim() && !vPP.trim()) return;
+
+  answered = true;
+  ['t-present','t-past','t-pp'].forEach(id => document.getElementById(id).disabled = true);
+
+  const okP  = matchAnswer(vP,  currentCard.present);
+  const okPa = matchAnswer(vPa, currentCard.past);
+  const okPP = matchAnswer(vPP, currentCard.pp);
+
+  document.getElementById('t-present').classList.add(okP  ? 'correct' : 'wrong');
+  document.getElementById('t-past').classList.add(okPa ? 'correct' : 'wrong');
+  document.getElementById('t-pp').classList.add(okPP  ? 'correct' : 'wrong');
+
+  const allOk = okP && okPa && okPP;
+  const anyOk = okP || okPa || okPP;
+  const fb    = document.getElementById('feedback');
+  fb.style.display = 'block';
+
+  if (allOk)      { correctCount++; fb.className = 'correct'; fb.innerHTML = '✅ 全問正解！完璧です！'; }
+  else if (anyOk) { wrongCount++;   fb.className = 'partial'; fb.innerHTML = '🟠 一部正解！全部合わせて覚えよう。'; }
+  else            { wrongCount++;   fb.className = 'wrong';   fb.innerHTML = '❌ 不正解'; }
+
+  fb.innerHTML += `<div class="feedback-forms">
+    <div class="form-item ${okP  ?'ok':'ng'}"><span class="form-label">現在形</span>${currentCard.present}</div>
+    <div class="form-item ${okPa ?'ok':'ng'}"><span class="form-label">過去形</span>${currentCard.past}</div>
+    <div class="form-item ${okPP ?'ok':'ng'}"><span class="form-label">過去分詞</span>${currentCard.pp}</div>
+  </div>`;
+
+  updateScore();
+  document.getElementById('submit-btn-triple').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function checkSingle() {
+  if (answered) { nextQuestion(); return; }
+  const raw = document.getElementById('answer-input').value;
+  if (!raw.trim()) return;
+  answered = true;
+  document.getElementById('answer-input').disabled = true;
+
+  const correct   = currentCard[currentCard.targetKey];
+  const isCorrect = matchAnswer(raw, correct);
+  const fb        = document.getElementById('feedback');
+  fb.style.display = 'block';
+
+  if (isCorrect) {
+    correctCount++;
+    document.getElementById('answer-input').classList.add('correct');
+    fb.className = 'correct'; fb.innerHTML = '✅ 正解！';
+  } else {
+    wrongCount++;
+    document.getElementById('answer-input').classList.add('wrong');
+    fb.className = 'wrong'; fb.innerHTML = `❌ 不正解… 正解は <strong>${correct}</strong> です`;
+  }
+
+  fb.innerHTML += `<div class="feedback-forms">
+    <div class="form-item"><span class="form-label">現在形</span>${currentCard.present}</div>
+    <div class="form-item"><span class="form-label">過去形</span>${currentCard.past}</div>
+    <div class="form-item"><span class="form-label">過去分詞</span>${currentCard.pp}</div>
+  </div>`;
+
+  updateScore();
+  document.getElementById('submit-btn').style.display = 'none';
+  document.getElementById('next-btn').style.display   = 'block';
+}
+
+function checkJa() {
+  if (answered) { nextQuestion(); return; }
+  const raw = document.getElementById('answer-input-ja').value;
+  if (!raw.trim()) return;
+  answered = true;
+  document.getElementById('answer-input-ja').disabled = true;
+
+  const accepts   = currentCard.ja.split('/').map(s => s.trim());
+  const isCorrect = accepts.some(a => a === raw.trim());
+  const fb        = document.getElementById('feedback');
+  fb.style.display = 'block';
+
+  if (isCorrect) {
+    correctCount++;
+    document.getElementById('answer-input-ja').classList.add('correct');
+    fb.className = 'correct'; fb.innerHTML = '✅ 正解！';
+  } else {
+    wrongCount++;
+    document.getElementById('answer-input-ja').classList.add('wrong');
+    fb.className = 'wrong'; fb.innerHTML = `❌ 不正解… 正解は <strong>${currentCard.ja}</strong> です`;
+  }
+
+  fb.innerHTML += `<div class="feedback-forms">
+    <div class="form-item"><span class="form-label">現在形</span>${currentCard.present}</div>
+    <div class="form-item"><span class="form-label">過去形</span>${currentCard.past}</div>
+    <div class="form-item"><span class="form-label">過去分詞</span>${currentCard.pp}</div>
+  </div>`;
+
+  updateScore();
+  document.getElementById('submit-btn-ja').style.display = 'none';
+  document.getElementById('next-btn').style.display      = 'block';
+}
+
+function nextQuestion() { currentIdx++; showQuestion(); }
+
+function updateScore() {
+  document.getElementById('score-correct').textContent = correctCount;
+  document.getElementById('score-wrong').textContent   = wrongCount;
+}
+
+function showResult() {
+  ['quiz-card','triple-input-area','single-input-area','ja-input-area','feedback','next-btn'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('progress-bar').style.width = '100%';
+
+  const total = correctCount + wrongCount;
+  const pct   = total > 0 ? Math.round(correctCount / total * 100) : 0;
+  let emoji = '😢', sub = 'もっと練習しよう！';
+  if (pct >= 90)      { emoji = '🏆'; sub = '素晴らしい！完璧に近い！'; }
+  else if (pct >= 70) { emoji = '😊'; sub = 'よくできました！'; }
+  else if (pct >= 50) { emoji = '🙂'; sub = 'もう少し！頑張ろう！'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-score').textContent = correctCount;
+  document.getElementById('result-total').textContent = total;
+  document.getElementById('result-sub').textContent   = sub + ` (正答率 ${pct}%)`;
+  document.getElementById('result-area').style.display = 'block';
+}
+
+// ===== Enter キー =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('answer-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { if (!answered) checkSingle(); else nextQuestion(); }
+  });
+  document.getElementById('answer-input-ja').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { if (!answered) checkJa(); else nextQuestion(); }
+  });
+  document.getElementById('t-present').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('t-past').focus();
+  });
+  document.getElementById('t-past').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('t-pp').focus();
+  });
+  document.getElementById('t-pp').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { if (!answered) checkTriple(); else nextQuestion(); }
+  });
+
+  applyTheme();
+  startQuiz();
+  renderList();
+});
+
+// ===== 単語一覧 =====
+
+// 列ごとの最長文字列の文字数を計算してmin-widthを返す（ch単位）
+// 幅固定用: 全単語から列の最長単語を求め、+0.5ch のパディング込みで返す
+function calcColMinWidth(key) {
+  if (!words.length) return '4ch';
+  const max = words.reduce((m, w) => Math.max(m, w[key].length), 0);
+  return (max + 1) + 'ch';   // 文字数+余白
+}
+
+function sortWords(arr) {
+  const sel = document.getElementById('sort-select')?.value || 'default';
+  const a   = [...arr];
+  switch (sel) {
+    case 'az':       return a.sort((x, y) => x.present.localeCompare(y.present));
+    case 'za':       return a.sort((x, y) => y.present.localeCompare(x.present));
+    case 'len-asc':  return a.sort((x, y) => x.present.length - y.present.length);
+    case 'len-desc': return a.sort((x, y) => y.present.length - x.present.length);
+    case 'ja':       return a.sort((x, y) => x.ja.localeCompare(y.ja, 'ja'));
+    default:         return a;  // 登録順
+  }
+}
+
+function renderList() {
+  const q        = (document.getElementById('list-search')?.value || '').toLowerCase();
+  const tbody    = document.getElementById('word-table-body');
+
+  // フィルタ → ソート
+  const filtered = sortWords(
+    words.filter(w =>
+      w.ja.includes(q) || w.present.toLowerCase().includes(q) ||
+      w.past.toLowerCase().includes(q) || w.pp.toLowerCase().includes(q)
+    )
+  );
+
+  document.getElementById('word-count').textContent = words.length;
+
+  // 列ごとの最大幅（全wordから計算、表示件数に関係なく全体の最大値を使う）
+  const wP  = calcColMinWidth('present');
+  const wPa = calcColMinWidth('past');
+  const wPP = calcColMinWidth('pp');
+
+  tbody.innerHTML = filtered.map(w => {
+    const ri = words.indexOf(w);
+    return `<tr>
+      <td>${w.ja}</td>
+      <td><span class="en-cell" onclick="toggleReveal(this)" style="min-width:${wP}">${w.present}</span></td>
+      <td><span class="en-cell" onclick="toggleReveal(this)" style="min-width:${wPa}">${w.past}</span></td>
+      <td><span class="en-cell" onclick="toggleReveal(this)" style="min-width:${wPP}">${w.pp}</span></td>
+      <td><button class="delete-btn" onclick="deleteWord(${ri})">削除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addWord() {
+  const ja      = document.getElementById('in-ja').value.trim();
+  const present = document.getElementById('in-present').value.trim();
+  const past    = document.getElementById('in-past').value.trim();
+  const pp      = document.getElementById('in-pp').value.trim();
+  const msg     = document.getElementById('add-msg');
+
+  if (!ja || !present || !past || !pp) {
+    msg.style.color = '#ef9a9a'; msg.textContent = '⚠ すべての項目を入力してください。'; return;
+  }
+  if (words.some(w => w.ja === ja)) {
+    msg.style.color = '#ef9a9a'; msg.textContent = '⚠ その日本語はすでに登録されています。'; return;
+  }
+
+  words.push({ ja, present, past, pp });
+  saveWords();
+  ['in-ja','in-present','in-past','in-pp'].forEach(id => document.getElementById(id).value = '');
+  msg.style.color = '#4caf50'; msg.textContent = `✅ 「${ja}」を追加しました！`;
+  setTimeout(() => msg.textContent = '', 2500);
+  renderList();
+}
+
+function deleteWord(idx) {
+  if (!confirm(`「${words[idx].ja}」を削除しますか？`)) return;
+  words.splice(idx, 1);
+  saveWords();
+  renderList();
+}
+
+// ===== 全画面暗記モード（物理赤シート用）=====
+// 英語は常に #ff9999 で表示。タップ不要。赤シートをかざすと文字が消えて見える。
+
+function openCover() {
+  const overlay = document.getElementById('cover-overlay');
+  const list    = document.getElementById('cover-list');
+  const sorted  = sortWords([...words]);
+
+  list.innerHTML = sorted.map(w => `
+    <div class="cover-row">
+      <div class="cover-ja">${w.ja}</div>
+      <div>
+        <span class="cover-form-label">現在形</span>
+        <span class="cover-en">${w.present}</span>
+      </div>
+      <div>
+        <span class="cover-form-label">過去形</span>
+        <span class="cover-en">${w.past}</span>
+      </div>
+      <div>
+        <span class="cover-form-label">過去分詞</span>
+        <span class="cover-en">${w.pp}</span>
+      </div>
+    </div>
+  `).join('');
+
+  overlay.classList.add('active');
+  overlay.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+
+  // 全画面API（対応端末のみ）
+  if (overlay.requestFullscreen)            overlay.requestFullscreen().catch(()=>{});
+  else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
+}
+
+function closeCover() {
+  document.getElementById('cover-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+  if (document.exitFullscreen)            document.exitFullscreen().catch(()=>{});
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+}
+
+function setCoverSize(s) {
+  document.getElementById('cover-overlay').dataset.size = s;
+  document.querySelectorAll('.cover-size-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === s);
+  });
+}
+
+// ESC で閉じる
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCover();
+});
+</script>
+</body>
+</html>
